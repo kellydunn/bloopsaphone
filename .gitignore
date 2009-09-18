@@ -1,0 +1,12 @@
+.*swp
+ext/ruby/Makefile
+ext/ruby/bloops.so
+ext/ruby/bloopsaphone.c
+ext/ruby/bloopsaphone.h
+ext/ruby/bloopsaphone.o
+ext/ruby/mkmf.log
+ext/ruby/notation.c
+ext/ruby/notation.o
+ext/ruby/out.wav
+ext/ruby/rubyext.o
+ext/ruby/test_record.rb

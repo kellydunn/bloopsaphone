@@ -12,6 +12,7 @@
 #include <time.h>
 #include <math.h>
 #include <portaudio.h>
+#include <sndfile.h>
 #include <unistd.h>
 #include "bloopsaphone.h"
 
@@ -328,11 +329,18 @@ static int bloops_port_callback(const void *inputBuffer, void *outputBuffer,
   float *out = (float*)outputBuffer;
   bloops *B = (bloops *)data;
 
-  if (B->play == BLOOPS_PLAY)
+  if (B->play == BLOOPS_PLAY) {
     bloops_synth(B, framesPerBuffer, out);
+  }
   else
     for(i = 0; i < framesPerBuffer; i++)
       *out++ = 0.0f;
+
+  if (B->mic != NULL) {
+    SNDFILE *sndfile = (SNDFILE *)B->mic->sndfile;
+    memcpy(B->mic->buffer, (float*)outputBuffer, 512);
+    sf_write_float(sndfile, B->mic->buffer, framesPerBuffer);
+  }
 
   return 0;
 }
@@ -403,12 +411,13 @@ bloops_load(char* filename)
 static int bloops_open = 0;
 
 bloops *
-bloops_new()
+bloops_new(char *path)
 {
   bloops *B = (bloops *)malloc(sizeof(bloops));
   B->volume = 0.10f;
   B->tempo = 120;
   B->play = BLOOPS_STOP;
+  B->mic = NULL;
   bloops_clear(B);
 
   if (!bloops_open++)
@@ -424,10 +433,38 @@ bloops_new()
 }
 
 void
+bloops_record_to(bloops *B, char *path)
+{
+  if (path != NULL)
+  {
+    // setup sndfile
+    SF_INFO info;
+    info.samplerate = SAMPLE_RATE;
+    info.channels = 1;
+    info.format = SF_FORMAT_WAV | SF_FORMAT_FLOAT;
+
+    SNDFILE *sndfile = sf_open(path, SFM_WRITE, &info);
+    if (sndfile) {
+      bloopsamic *mic = (bloopsamic *)malloc(sizeof(bloopsamic));
+      mic->sndfile = (void *)sndfile;
+      mic->buffer = (float *)malloc(sizeof(float)*512);
+      B->mic = mic;
+    }
+  }
+}
+
+void
 bloops_destroy(bloops *B)
 {
   Pa_StopStream(B->stream);
   Pa_CloseStream(B->stream);
+
+  if (B->mic != NULL) {
+    sf_close( (SNDFILE *)B->mic->sndfile );
+    free((void *)B->mic->buffer);
+    free((void *)B->mic);
+  }
+
   free((void *)B);
 
   if (!--bloops_open)
