@@ -9,4 +9,3 @@ ext/ruby/notation.c
 ext/ruby/notation.o
 ext/ruby/out.wav
 ext/ruby/rubyext.o
-ext/ruby/test_record.rb
