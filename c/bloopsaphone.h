@@ -64,17 +64,11 @@ typedef struct {
 #define BLOOPS_MAX_TRACKS 64
 
 typedef struct {
-  void *sndfile;
-  float *buffer;
-} bloopsamic;
-
-typedef struct {
   void *stream;
   int tempo;
   float volume;
   bloopsatrack *tracks[BLOOPS_MAX_TRACKS];
   unsigned char play;
-  bloopsamic *mic;
 } bloops;
 
 //
@@ -89,6 +83,7 @@ void bloops_tempo(bloops *, int tempo);
 void bloops_track_at(bloops *, bloopsatrack *, int);
 void bloops_track_destroy(bloopsatrack *);
 void bloops_play(bloops *);
+int bloops_record(bloops *, char *);
 int bloops_is_done(bloops *);
 bloopsatrack *bloops_track(bloops *, bloopsaphone *, char *, int);
 bloopsatrack *bloops_track2(bloops *, bloopsaphone *, char *);
@@ -96,6 +91,5 @@ char *bloops_track_str(bloopsatrack *);
 float bloops_note_freq(char, int);
 bloopsaphone *bloops_sound_file(bloops *, char *);
 char *bloops_sound_str(bloops *, bloopsaphone *);
-void bloops_record_to(bloops *, char *);
 
 #endif

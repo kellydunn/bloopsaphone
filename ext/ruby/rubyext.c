@@ -31,18 +31,6 @@ rb_bloops_alloc(VALUE klass)
 }
 
 VALUE
-rb_bloops_init(int argc, VALUE *argv, VALUE self)
-{
-  VALUE path;
-  bloops *B;
-
-  Data_Get_Struct(self, bloops, B);
-  if (rb_scan_args(argc, argv, "01", &path)) {
-    bloops_record_to(B, StringValuePtr(path));
-  }
-}
-
-VALUE
 rb_bloops_clear(VALUE self)
 {
   bloops *B;
@@ -57,6 +45,15 @@ rb_bloops_play(VALUE self)
   bloops *B;
   Data_Get_Struct(self, bloops, B);
   bloops_play(B);
+  return self;
+}
+
+VALUE
+rb_bloops_record(VALUE self, VALUE path)
+{
+  bloops *B;
+  Data_Get_Struct(self, bloops, B);
+  int result = bloops_record(B, StringValuePtr(path));
   return self;
 }
 
@@ -223,10 +220,10 @@ Init_bloops()
 {
   cBloops = rb_define_class("Bloops", rb_cObject);
   rb_define_alloc_func(cBloops, rb_bloops_alloc);
-  rb_define_method(cBloops, "initialize", rb_bloops_init, -1);
   rb_define_method(cBloops, "clear", rb_bloops_clear, 0);
   rb_define_method(cBloops, "load", rb_bloops_load, 1);
   rb_define_method(cBloops, "play", rb_bloops_play, 0);
+  rb_define_method(cBloops, "record", rb_bloops_record, 1);
   rb_define_method(cBloops, "sound", rb_bloops_sound, 1);
   rb_define_method(cBloops, "stopped?", rb_bloops_is_stopped, 0);
   rb_define_method(cBloops, "tempo", rb_bloops_get_tempo, 0);

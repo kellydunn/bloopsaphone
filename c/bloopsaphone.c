@@ -17,9 +17,12 @@
 #include "bloopsaphone.h"
 
 #define SAMPLE_RATE 44100
+#define FRAMES_PER_BUFFER 512
 #define rnd(n) (rand() % (n + 1))
 #define tempo2frames(tempo) ((float)SAMPLE_RATE / (tempo / 60.0f))
 #define PI 3.14159265f
+
+static int bloops_open = 0;
 
 float
 frnd(float range)
@@ -107,18 +110,6 @@ void
 bloops_track_at(bloops *B, bloopsatrack *track, int num)
 {
   B->tracks[num] = track;
-}
-
-void
-bloops_play(bloops *B)
-{
-  int i;
-  for (i = 0; i < BLOOPS_MAX_TRACKS; i++)
-    if (B->tracks[i] != NULL) {
-      bloops_ready(B, B->tracks[i], 1);
-      B->tracks[i]->frames = 0;
-    }
-  B->play = BLOOPS_PLAY;
 }
 
 int
@@ -336,13 +327,62 @@ static int bloops_port_callback(const void *inputBuffer, void *outputBuffer,
     for(i = 0; i < framesPerBuffer; i++)
       *out++ = 0.0f;
 
-  if (B->mic != NULL) {
-    SNDFILE *sndfile = (SNDFILE *)B->mic->sndfile;
-    memcpy(B->mic->buffer, (float*)outputBuffer, 512);
-    sf_write_float(sndfile, B->mic->buffer, framesPerBuffer);
+  return 0;
+}
+
+void
+bloops_prep(bloops *B)
+{
+  int i;
+  for (i = 0; i < BLOOPS_MAX_TRACKS; i++)
+    if (B->tracks[i] != NULL) {
+      bloops_ready(B, B->tracks[i], 1);
+      B->tracks[i]->frames = 0;
+    }
+  B->play = BLOOPS_PLAY;
+}
+
+void
+bloops_play(bloops *B)
+{
+  if (!bloops_open++)
+  {
+    srand(time(NULL));
+    Pa_Initialize();
   }
 
-  return 0;
+  bloops_prep(B);
+
+  if (B->stream == NULL) {
+    Pa_OpenDefaultStream(&B->stream, 0, 1, paFloat32,
+      SAMPLE_RATE, FRAMES_PER_BUFFER, bloops_port_callback, B);
+    Pa_StartStream(B->stream);
+  }
+}
+
+int
+bloops_record(bloops *B, char *path)
+{
+  // setup sndfile
+  SF_INFO info;
+  info.samplerate = SAMPLE_RATE;
+  info.channels = 1;
+  info.format = SF_FORMAT_WAV | SF_FORMAT_FLOAT;
+
+  SNDFILE *sndfile = sf_open(path, SFM_WRITE, &info);
+  if (sndfile) {
+    bloops_prep(B);
+
+    float *buffer = (float *)malloc(sizeof(float)*FRAMES_PER_BUFFER);
+    while(!bloops_is_done(B)) {
+      bloops_synth(B, FRAMES_PER_BUFFER, buffer);
+      sf_write_float(sndfile, buffer, FRAMES_PER_BUFFER);
+    }
+    sf_close(sndfile);
+    free(buffer);
+    return 0;
+  }
+  return 1;
 }
 
 bloopsaphone *
@@ -408,8 +448,6 @@ bloops_load(char* filename)
   return P;
 }
 
-static int bloops_open = 0;
-
 bloops *
 bloops_new(char *path)
 {
@@ -417,52 +455,17 @@ bloops_new(char *path)
   B->volume = 0.10f;
   B->tempo = 120;
   B->play = BLOOPS_STOP;
-  B->mic = NULL;
   bloops_clear(B);
 
-  if (!bloops_open++)
-  {
-    srand(time(NULL));
-    Pa_Initialize();
-  }
-
-  Pa_OpenDefaultStream(&B->stream, 0, 1, paFloat32,
-    SAMPLE_RATE, 512, bloops_port_callback, B);
-  Pa_StartStream(B->stream);
   return B;
-}
-
-void
-bloops_record_to(bloops *B, char *path)
-{
-  if (path != NULL)
-  {
-    // setup sndfile
-    SF_INFO info;
-    info.samplerate = SAMPLE_RATE;
-    info.channels = 1;
-    info.format = SF_FORMAT_WAV | SF_FORMAT_FLOAT;
-
-    SNDFILE *sndfile = sf_open(path, SFM_WRITE, &info);
-    if (sndfile) {
-      bloopsamic *mic = (bloopsamic *)malloc(sizeof(bloopsamic));
-      mic->sndfile = (void *)sndfile;
-      mic->buffer = (float *)malloc(sizeof(float)*512);
-      B->mic = mic;
-    }
-  }
 }
 
 void
 bloops_destroy(bloops *B)
 {
-  Pa_StopStream(B->stream);
-  Pa_CloseStream(B->stream);
-
-  if (B->mic != NULL) {
-    sf_close( (SNDFILE *)B->mic->sndfile );
-    free((void *)B->mic->buffer);
-    free((void *)B->mic);
+  if (B->stream != NULL) {
+    Pa_StopStream(B->stream);
+    Pa_CloseStream(B->stream);
   }
 
   free((void *)B);
