@@ -17,6 +17,9 @@
   a rather light cross-platform audio lib.
   <http://www.portaudio.com/>
 
+  it also records to a wav file using
+  libsndfile.
+
   right now i'm only including ruby
   bindings. you are welcome to contribute
   code to hook up to other languages,
