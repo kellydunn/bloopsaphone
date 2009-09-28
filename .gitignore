@@ -7,6 +7,7 @@ ext/ruby/bloopsaphone.o
 ext/ruby/mkmf.log
 ext/ruby/notation.c
 ext/ruby/notation.o
-ext/ruby/*.wav
+ext/ruby/*.riff
 ext/ruby/rubyext.o
+examples/*.riff
 *.gem
