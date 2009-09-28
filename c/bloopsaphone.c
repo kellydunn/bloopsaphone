@@ -345,15 +345,15 @@ bloops_prep(bloops *B)
 void
 bloops_play(bloops *B)
 {
-  if (!bloops_open++)
-  {
-    srand(time(NULL));
-    Pa_Initialize();
-  }
-
   bloops_prep(B);
 
   if (B->stream == NULL) {
+    if (!bloops_open++)
+    {
+      srand(time(NULL));
+      Pa_Initialize();
+    }
+
     Pa_OpenDefaultStream(&B->stream, 0, 1, paFloat32,
       SAMPLE_RATE, FRAMES_PER_BUFFER, bloops_port_callback, B);
     Pa_StartStream(B->stream);
