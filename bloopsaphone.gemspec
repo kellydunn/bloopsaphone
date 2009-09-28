@@ -1,11 +1,11 @@
 Gem::Specification.new do |s|
-  s.name = 'bloopsaphone'
+  s.name = 'viking-bloopsaphone'
   s.version = '0.4.1'
 
-  s.authors = ["why the lucky stiff"]
+  s.authors = ["why the lucky stiff", "Jeremy Stephens"]
   s.date = '2009-09-26'
   s.description = 'arcade sounds and chiptunes'
-  s.email = 'why@ruby-lang.org'
+  s.email = 'viking415@gmail.com'
   s.extensions = ["ext/ruby/extconf.rb"]
   s.extra_rdoc_files = ["README", "COPYING"]
   s.files = ["COPYING", "README", "c/bloopsaphone.c", "c/bloopsaphone.h",
