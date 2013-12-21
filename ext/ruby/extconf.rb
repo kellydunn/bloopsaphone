@@ -23,6 +23,7 @@ LIB_DIRS = [
 
 dir_config('portaudio', HEADER_DIRS, LIB_DIRS)
 dir_config('sndfile', HEADER_DIRS, LIB_DIRS)
+dir_config('FLAC', HEADER_DIRS, LIB_DIRS)
 
 # have_library("portaudio")
 unless find_library("portaudio", "Pa_Initialize")
@@ -32,6 +33,10 @@ end
 # have_library("sndfile")
 unless find_library("sndfile", "sf_open")
   abort("could not find sf_open symbol in sndfile")
+end
+
+unless find_library("FLAC", "FLAC__seekable_stream_encoder_set_write_callback")
+  abort("could not find FLAC__seekable_stream_encoder_set_write_callback symbol in FLAC")
 end
 
 create_makefile("bloops")
