@@ -11,12 +11,14 @@ end
 
 HEADER_DIRS = [
   "#{ENV['HOME']}/app-root/repo/lib/include",
-  Config::CONFIG['includedir']
+  Config::CONFIG['includedir'],
+  "/vagrant/lib/include"
 ]
 
 LIB_DIRS = [
   "#{ENV['HOME']}/app-root/repo/lib",
-  Config::CONFIG['libdir']
+  Config::CONFIG['libdir'],
+  "/vagrant/lib"
 ]
 
 dir_config('portaudio', HEADER_DIRS, LIB_DIRS)
