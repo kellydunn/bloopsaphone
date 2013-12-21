@@ -35,8 +35,9 @@ unless find_library("sndfile", "sf_open")
   abort("could not find sf_open symbol in sndfile")
 end
 
-unless find_library("FLAC", "FLAC__seekable_stream_encoder_set_write_callback")
-  abort("could not find FLAC__seekable_stream_encoder_set_write_callback symbol in FLAC")
-end
+have_library("FLAC")
+#unless find_library("FLAC", "FLAC__seekable_stream_encoder_set_write_callback")
+#  abort("could not find FLAC__seekable_stream_encoder_set_write_callback symbol in FLAC")
+#end
 
 create_makefile("bloops")
