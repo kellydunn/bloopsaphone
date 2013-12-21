@@ -9,6 +9,14 @@ $CFLAGS << " -I../../c "
   FileUtils.cp(fn, ".")
 end
 
-have_library("portaudio")
-have_library("sndfile")
+# have_library("portaudio")
+unless find_library("portaudio", "Pa_Initialize")
+  abort("could not find Pa_Initialize symbol in portaudio")
+end
+
+# have_library("sndfile")
+unless find_library("sndfile", "sf_open")
+  abort("could not find sf_open symbol in sndfile")
+end
+
 create_makefile("bloops")
